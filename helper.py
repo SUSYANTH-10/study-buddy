@@ -18,21 +18,28 @@ if not api_key:
     api_key = os.getenv("GEMINI_KEY")
 
 # -----------------------
-# ASK AI FUNCTION (Direct Key Passing)
+# ASK AI FUNCTION (Targeted Client Config)
 # -----------------------
 def ask_ai(prompt):
     if not api_key:
         return "Error: Gemini API key is missing. Please add GEMINI_KEY to Streamlit Secrets."
         
     try:
-        # We pass the api_key DIRECTLY into the model creation here
-        # This completely bypasses the broken genai.configure() step!
-        model = genai.GenerativeModel(
-            model_name="gemini-2.5-flash",
-            api_key=api_key
-        )
+        # Create a specific client targeting the api_key properly
+        client = genai.Client(api_key=api_key)
         
-        response = model.generate_content(prompt)
+        # Request content generation through the client model manager
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
+        )
         return response.text
     except Exception as e:
-        return f"Error: {str(e)}"
+        # Fallback if the newer Client object is not supported by your library version
+        try:
+            genai.configure(api_key=api_key)
+            model = genai.GenerativeModel("gemini-2.5-flash")
+            response = model.generate_content(prompt)
+            return response.text
+        except Exception as e2:
+            return f"Authentication Error: {str(e2)}"
