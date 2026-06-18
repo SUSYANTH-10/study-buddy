@@ -14,7 +14,7 @@ load_dotenv()
 # -----------------------
 # Check if running on Streamlit Cloud, otherwise fallback to local .env
 if "GEMINI_KEY" in st.secrets:
-    genai.configure(api_key=st.secrets["GEMINI_KEY"])
+    genai.configure(api_key = st.secrets["GEMINI_KEY"] if "GEMINI_KEY" in st.secrets else os.getenv("GEMINI_KEY"))
 else:
     genai.configure(api_key=os.getenv("GEMINI_KEY"))
 
